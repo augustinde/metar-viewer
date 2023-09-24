@@ -1,7 +1,41 @@
 package fr.serkox.androidproject.data.repository
 
+import android.util.Log
+import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.ktx.Firebase
 import fr.serkox.androidproject.data.model.AirfieldObject
 
+interface AirportRepository{
+    suspend fun getAll(): List<AirfieldObject>
+}
+
+class NetworkAirportRepository(): AirportRepository{
+    override suspend fun getAll(): List<AirfieldObject> {
+        val db = Firebase.firestore
+        var listAirport = mutableListOf<AirfieldObject>()
+        db.collection("airports")
+            .get()
+            .addOnSuccessListener { documents ->
+                for(doc in documents){
+                    var geoPoint: GeoPoint? = doc.getGeoPoint("position")
+                    var latLng: LatLng? = geoPoint?.let { LatLng(it.latitude, geoPoint.longitude) }
+                    latLng?.let { AirfieldObject(it, doc.data.get("ident") as String, doc.data.get("name") as String) }
+                        ?.let { listAirport.add(it)
+                        Log.i("AAAAA", it.name)}
+                }
+                Log.i("OKKKK", "YEAAAH")
+            }
+        for(item in listAirport){
+            Log.i("ITEM", item.title + " " + item.snippet    + " " + item.position)
+        }
+        return listAirport
+
+    }
+}
+/*
 class AirfieldRepository{
 
    fun getAirfieldList(): List<AirfieldObject>{
@@ -99,4 +133,4 @@ class AirfieldRepository{
        )
    }
 
-}
+}*/

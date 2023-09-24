@@ -5,94 +5,197 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.location.Location
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.google.android.gms.location.LocationServices
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.clustering.ClusterItem
+import com.google.maps.android.clustering.ClusterManager
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapsComposeExperimentalApi
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.clustering.Clustering
 import com.google.maps.android.compose.rememberCameraPositionState
-import fr.serkox.androidproject.MainActivity
 import fr.serkox.androidproject.R
-import fr.serkox.androidproject.data.repository.AirfieldRepository
-import fr.serkox.androidproject.ui.theme.AndroidProjectTheme
+import fr.serkox.androidproject.data.model.AirfieldObject
+import fr.serkox.androidproject.network.AddDataToFirestore
+import fr.serkox.androidproject.ui.navigation.MetarViewerNavHost
+import fr.serkox.androidproject.ui.navigation.MetarViewerNavigationScreen
+import fr.serkox.androidproject.ui.reusable.LoadingAnimation
+import fr.serkox.androidproject.ui.viewmodel.MapUiState
+import fr.serkox.androidproject.ui.viewmodel.MapViewModel
+import fr.serkox.androidproject.ui.viewmodel.StationViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MetarViewerAppBar(
+    currentScreen: MetarViewerNavigationScreen,
+    canNavigateBack: Boolean,
+    navigateUp: () -> Unit
+){
+    TopAppBar(
+        title = { Text(stringResource(currentScreen.title)) },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        navigationIcon = {
+            if(canNavigateBack){
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = stringResource(id = R.string.back_button)
+                    )
+                }
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MetarViewerApp(){
+    val stationViewModel: StationViewModel = viewModel(factory = StationViewModel.Factory)
+    val mapViewModel: MapViewModel = viewModel(factory = MapViewModel.Factory)
+    val navController: NavHostController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen = MetarViewerNavigationScreen.valueOf(backStackEntry?.destination?.route ?: MetarViewerNavigationScreen.Start.name)
+    val service = AddDataToFirestore()
+    val context: Context = LocalContext.current
+    Scaffold(
+        topBar = {
+            MetarViewerAppBar(
+                currentScreen = currentScreen,
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateUp = { navController.navigateUp() }
+            )
+        }
+    ){
+        innerPadding ->
+        MetarViewerNavHost(
+            stationViewModel = stationViewModel,
+            mapViewModel = mapViewModel,
+            navController = navController,
+            startDestination = MetarViewerNavigationScreen.Start.name,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        )
+       //Button(onClick = { service.addDataFromJson(context = context) }, content = {Text(text = "Click")}, modifier = Modifier.padding(innerPadding))
+    }
+}
 
 @RequiresPermission(
     anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION],
 )@Composable
 fun MapScreen(
-    onButtonClick: () -> Unit
+    mapUiState: MapUiState,
+    onMarkerClicked: (String) -> Unit,
 ){
-    val airfieldRepository: AirfieldRepository by lazy { AirfieldRepository() }
-    val context = LocalContext.current
 
-    val fusedLocationProviderClient =
-        remember { LocationServices.getFusedLocationProviderClient(context) }
-    var lastKnownLocation by remember {
-        mutableStateOf<Location?>(null)
+    when(mapUiState) {
+        is MapUiState.Success -> Map(mapUiState.airfieldList, mapUiState.cameraPosition, onMarkerClicked)
+        is MapUiState.Loading -> LoadingMap()
+        is MapUiState.Error -> ErrorMap()
     }
-    var deviceLatLng by remember {
-        mutableStateOf(LatLng(0.0, 0.0))
-    }
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(deviceLatLng, 8f)
-    }
-    val locationResult = fusedLocationProviderClient.lastLocation
-    locationResult.addOnCompleteListener(context as MainActivity) { task ->
-        if (task.isSuccessful) {
-            lastKnownLocation = task.result
-            deviceLatLng = LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude)
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(deviceLatLng, 8f)
-        } else {
-            Log.e("TAG", "Exception: %s", task.exception)
-        }
-    }
+
+}
+
+@OptIn(MapsComposeExperimentalApi::class)
+@Composable
+fun Map(
+    airfieldList: List<AirfieldObject>,
+    cameraPosition: CameraPosition,
+    onMarkerClicked: (String) -> Unit
+){
     GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
+        cameraPositionState = rememberCameraPositionState{
+            position = cameraPosition
+        }
     ) {
 
-        val listAirfield = airfieldRepository.getAirfieldList()
-        listAirfield.map { airfieldObject ->
 
-            Marker(
-                onClick = {
-                    Log.i("MARKER_CLICK", airfieldObject.ident)
-                    onButtonClick()
-                    false
-                },
-                state = MarkerState(position = LatLng(airfieldObject.latitude, airfieldObject.longitude)),
-                title = airfieldObject.ident,
-                snippet = airfieldObject.name,
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)
-
-            )
-            Marker(
-                state = MarkerState(position = deviceLatLng),
-                icon = bitmapDescriptorFromVector(context, R.drawable.plane),
-                anchor = Offset(0.5f,0.5f),
-            )
+        val items = remember { mutableStateListOf<ClusterItem>() }
+        airfieldList.map { airfieldObject ->
+            items.add(airfieldObject)
         }
+        Clustering(
+            items = items,
+            onClusterItemClick = {
+                it.title?.let { it1 -> onMarkerClicked(it1) }
+                it.title?.let { it1 -> Log.i("MARKER_CLICK", it1) }
+                false
+            }
+        )
+    }
 
+}
+
+@Composable
+fun LoadingMap(){
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        LoadingAnimation()
     }
 }
+
+@Composable
+fun ErrorMap(){
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Erreur lors du chargement du metar !")
+    }}
 
 private fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
     val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
@@ -105,13 +208,4 @@ private fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): Bitm
     val canvas = Canvas(bitmap)
     vectorDrawable.draw(canvas)
     return BitmapDescriptorFactory.fromBitmap(bitmap)
-}
-
-@SuppressLint("MissingPermission")
-@Preview
-@Composable
-fun MapScreenPreview(){
-    AndroidProjectTheme {
-        MapScreen({})
-    }
 }
