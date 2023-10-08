@@ -1,6 +1,7 @@
 package fr.serkox.androidproject.ui.navigation
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ fun MetarViewerNavHost(
             MapScreen(
                 mapUiState = mapViewModel.mapUiState,
                 onMarkerClicked = {
+                    Log.i("INFO", it)
                     stationViewModel.getMetar(it)
                     navController.navigate(MetarViewerNavigationScreen.Metar.name)
                 },

@@ -26,7 +26,8 @@ data class AirfieldObjectDto(
 )
 
 data class AirfieldEntity(
-    val geoPoint: GeoPoint,
-    val ident: String,
-    val name: String,
+    val latitude: Double,
+    val longitude: Double,
+    val ident: String? = "",
+    val name: String? = "",
 )

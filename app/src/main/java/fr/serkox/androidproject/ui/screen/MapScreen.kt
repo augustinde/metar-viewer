@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -53,6 +56,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.clustering.ClusterItem
 import com.google.maps.android.clustering.ClusterManager
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapsComposeExperimentalApi
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
@@ -149,24 +153,22 @@ fun Map(
     cameraPosition: CameraPosition,
     onMarkerClicked: (String) -> Unit
 ){
+    val items = remember { mutableStateListOf<AirfieldObject>() }
+    airfieldList.map { airfieldObject ->
+        items.add(airfieldObject)
+    }
     GoogleMap(
         cameraPositionState = rememberCameraPositionState{
             position = cameraPosition
-        }
+        },
     ) {
-
-
-        val items = remember { mutableStateListOf<ClusterItem>() }
-        airfieldList.map { airfieldObject ->
-            items.add(airfieldObject)
-        }
         Clustering(
             items = items,
             onClusterItemClick = {
-                it.title?.let { it1 -> onMarkerClicked(it1) }
-                it.title?.let { it1 -> Log.i("MARKER_CLICK", it1) }
+                onMarkerClicked(it.title)
                 false
-            }
+            },
+            clusterItemContent = null
         )
     }
 

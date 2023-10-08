@@ -33,7 +33,7 @@ class AddDataToFirestore {
         list.map { item ->
             db.collection("airports")
                 .document(item.ident)
-                .set(AirfieldEntity(GeoPoint(item.latitude,item.longitude),item.ident, item.name))
+                .set(AirfieldEntity(item.latitude,item.longitude,item.ident, item.name))
 
         }
 

@@ -29,15 +29,22 @@ class MapViewModel(private val airportRepository: AirportRepository): ViewModel(
     private fun getAirfields(){
         viewModelScope.launch {
             mapUiState = MapUiState.Loading
+
+            //val airports: List<AirfieldObject> = airportRepository.getAll()
+            val airports: List<AirfieldObject> = airportRepository.getAll();
+
+            Log.i("SIZE", airports.size.toString())
             mapUiState = try {
                 MapUiState.Success(
-                    airportRepository.getAll(),
+                    airports,
                     CameraPosition.fromLatLngZoom(LatLng(49.9715003967, 2.69765996933), 8f)
                 )
             }catch (e: Exception){
                 Log.e("ERROR", e.toString())
                 MapUiState.Error
             }
+            Log.i("tag", "zdzdpazdj")
+
         }
     }
 
