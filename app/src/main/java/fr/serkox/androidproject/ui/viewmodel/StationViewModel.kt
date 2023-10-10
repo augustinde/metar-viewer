@@ -21,7 +21,7 @@ import java.io.IOException
 class StationViewModel(
     private val metarRepository: MetarRepository,
     private val tafRepository: TafRepository,
-    private val airportInfoRepository: AirportInfoRepository
+    private val airportInfoRepository: AirportInfoRepository,
 ) : ViewModel() {
     var uiState: StationUiState by mutableStateOf(StationUiState.Loading)
         private set
@@ -30,7 +30,7 @@ class StationViewModel(
         viewModelScope.launch {
             uiState = StationUiState.Loading
             uiState = try {
-                StationUiState.Success(metarRepository.getMetar(id), tafRepository.getTaf(id), airportInfoRepository.getAirportInfo(id))
+                StationUiState.Success(metarRepository.getMetar(id), tafRepository.getTaf(id), airportInfoRepository.getAirportInfo(id), id)
             }catch (e: IOException){
                 Log.i("ERROR", e.toString())
                 StationUiState.Error
@@ -59,7 +59,7 @@ class StationViewModel(
 }
 
 sealed interface StationUiState {
-    data class Success(val metar: String, val taf: String, val airportInfo: String) : StationUiState
+    data class Success(val metar: String, val taf: String, val airportInfo: String, val airportCode: String) : StationUiState
     object Error : StationUiState
     object Loading : StationUiState
 }

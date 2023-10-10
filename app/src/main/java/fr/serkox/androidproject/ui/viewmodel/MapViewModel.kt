@@ -30,7 +30,6 @@ class MapViewModel(private val airportRepository: AirportRepository): ViewModel(
         viewModelScope.launch {
             mapUiState = MapUiState.Loading
 
-            //val airports: List<AirfieldObject> = airportRepository.getAll()
             val airports: List<AirfieldObject> = airportRepository.getAll();
 
             Log.i("SIZE", airports.size.toString())
