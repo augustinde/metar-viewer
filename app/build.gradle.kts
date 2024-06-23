@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -51,14 +53,23 @@ android {
 }
 
 dependencies {
-
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
+    implementation("com.google.maps.android:maps-compose-utils:2.15.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.5.0")
+    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("androidx.navigation:navigation-runtime-ktx:2.4.0")
     implementation("androidx.navigation:navigation-compose:2.4.0")
     implementation("androidx.navigation:navigation-common-ktx:2.4.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.maps.android:maps-ktx:3.2.1")
     implementation("com.google.maps.android:maps-utils-ktx:3.2.1")
-    implementation("com.google.maps.android:maps-compose:2.11.4")
+    implementation("com.google.maps.android:maps-compose:2.15.0")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")

@@ -1,7 +1,89 @@
 package fr.serkox.androidproject.data.repository
 
+import android.util.Log
+import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import fr.serkox.androidproject.data.model.AirfieldObject
+import kotlinx.coroutines.tasks.await
+import java.util.Optional
 
+interface AirportRepository{
+    suspend fun getAll(): List<AirfieldObject>
+}
+
+class NetworkAirportRepository(): AirportRepository{
+    /*override fun getAll(): List<AirfieldObject> {
+        Log.e("ERROR", "AAAAAAAAAAAAAAA")
+        val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+        var listAirport = mutableListOf<AirfieldObject>()
+        db.collection("airports")
+            .limit(100)
+            .get()
+            /*.addOnSuccessListener { document ->
+                listAirport.add(
+                    AirfieldObject(
+                        LatLng(document.data?.get("latitude") as Double, document.data?.get("longitude") as Double),
+                        document.data?.get("ident").toString(),
+                        document.data?.get("name").toString()
+                    )
+                )
+                Log.e("FIRESTORE", "SUCCESS " + listAirport.size)
+
+            }*/
+            .addOnSuccessListener { documents ->
+                for(doc in documents.documents){
+                    listAirport.add(
+                        AirfieldObject(
+                            LatLng(doc.data?.get("latitude") as Double, doc.data?.get("longitude") as Double),
+                            doc.data?.get("ident").toString(),
+                            doc.data?.get("name").toString()
+                        )
+                    )
+                }
+            }
+          /*  for(doc in documents.result){
+                //Log.e("ELT", doc.id + " " + doc.data?.get("latitude") as Double + " " + doc.data?.get("ident"))
+                listAirport.add(
+                    AirfieldObject(
+                        LatLng(doc.data["latitude"] as Double, doc.data["longitude"] as Double),
+                        doc.data["ident"].toString(),
+                        doc.data["name"].toString()
+                    )
+                )
+            }
+            Log.e("FIRESTORE", "COMPLETE " + listAirport.size)*/
+        return listAirport
+
+    }*/
+
+    override suspend fun getAll(): List<AirfieldObject> {
+        val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+        val airports = mutableListOf<AirfieldObject>()
+
+        try {
+            val documents = db.collection("airports")
+                .get()
+                .await()
+
+            for (doc in documents.documents) {
+                airports.add(
+                    AirfieldObject(
+                        LatLng(doc.data?.get("latitude") as Double, doc.data?.get("longitude") as Double),
+                        doc.data?.get("ident").toString(),
+                        doc.data?.get("name").toString()
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("ERROR", e.toString())
+        }
+
+        return airports
+    }
+}
+/*
 class AirfieldRepository{
 
    fun getAirfieldList(): List<AirfieldObject>{
@@ -99,4 +181,4 @@ class AirfieldRepository{
        )
    }
 
-}
+}*/

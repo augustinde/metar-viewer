@@ -1,51 +1,55 @@
 package fr.serkox.androidproject.ui.navigation
 
+import android.annotation.SuppressLint
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavGraphBuilder
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import fr.serkox.androidproject.R
 import fr.serkox.androidproject.ui.screen.MapScreen
-import fr.serkox.androidproject.ui.screen.MetarScreen
+import fr.serkox.androidproject.ui.screen.StationScreen
+import fr.serkox.androidproject.ui.viewmodel.MapViewModel
+import fr.serkox.androidproject.ui.viewmodel.StationViewModel
 
-object NavigationPath{
-    const val MAP_SCREEN = "map_screen"
-    const val METAR_SCREEN = "metar_screen"
+enum class MetarViewerNavigationScreen(@StringRes val title: Int){
+    Start(title = R.string.start),
+    Metar(title = R.string.metar)
 }
 
-fun NavGraphBuilder.addMapScreenNav(
-    onButtonClick: () -> Unit
-){
-    composable(
-        route = NavigationPath.MAP_SCREEN
-    ) {
-        MapScreen(
-            onButtonClick = { onButtonClick() }
-        )
-    }
-}
-
-fun NavGraphBuilder.addMetarScreenNav() {
-    composable(
-        route = NavigationPath.METAR_SCREEN,
-    ) {
-        MetarScreen()
-    }
-}
+@SuppressLint("MissingPermission")
 @Composable
-fun HomeNavHost(
+fun MetarViewerNavHost(
+    stationViewModel: StationViewModel,
+    mapViewModel: MapViewModel,
     navController: NavHostController = rememberNavController(),
+    startDestination: String,
+    modifier: Modifier
 ) {
+
     NavHost(
         navController = navController,
-        startDestination = NavigationPath.MAP_SCREEN,
-
+        startDestination = startDestination,
+        modifier = modifier
     ) {
-        addMapScreenNav(onButtonClick = {
-            navController.navigate(NavigationPath.METAR_SCREEN)
-        })
-        addMetarScreenNav()
+        composable(route = MetarViewerNavigationScreen.Start.name){
+            MapScreen(
+                mapUiState = mapViewModel.mapUiState,
+                onMarkerClicked = {
+                    Log.i("INFO", it)
+                    stationViewModel.getMetar(it)
+                    navController.navigate(MetarViewerNavigationScreen.Metar.name)
+                },
+            )
+        }
+        composable(route = MetarViewerNavigationScreen.Metar.name){
+            StationScreen(
+                stationUiState = stationViewModel.uiState
+            )
+        }
+
     }
 }
