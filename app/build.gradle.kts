@@ -7,15 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "fr.serkox.androidproject"
+    namespace = "fr.serkox.metarviewer"
     compileSdk = 33
 
     defaultConfig {
-        applicationId = "fr.serkox.androidproject"
+        applicationId = "fr.serkox.metarviewer"
         minSdk = 33
         targetSdk = 33
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

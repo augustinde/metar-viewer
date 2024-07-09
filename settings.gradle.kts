@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AndroidProject"
+rootProject.name = "MetarViewer"
 include(":app")
