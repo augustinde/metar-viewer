@@ -1,9 +1,17 @@
 package fr.serkox.metarviewer.network
 
+import fr.serkox.metarviewer.BuildConfig
+import fr.serkox.metarviewer.data.model.dto.ResponseDto
+import kotlinx.serialization.json.Json
 import retrofit2.http.GET
+import retrofit2.http.Headers
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MetarApiService{
-    @GET("metar.php")
-    suspend fun getMetar(@Query("ids") ids: String): String
+
+    private val apiKey: String
+        get() = BuildConfig.WEATHER_API_KEY
+    @GET("metar/{icao}")
+    suspend fun getMetar(@Path("icao") icao: String, @Query("x-api-key") apiKey: String = this.apiKey): ResponseDto
 }

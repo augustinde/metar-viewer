@@ -1,31 +1,32 @@
 package fr.serkox.metarviewer.data
 
-import fr.serkox.metarviewer.data.repository.AirportInfoRepository
+import com.google.gson.GsonBuilder
 import fr.serkox.metarviewer.data.repository.AirportRepository
 import fr.serkox.metarviewer.data.repository.MetarRepository
 import fr.serkox.metarviewer.data.repository.NetWorkTafRepository
-import fr.serkox.metarviewer.data.repository.NetworkAirportInfoRepository
 import fr.serkox.metarviewer.data.repository.NetworkAirportRepository
 import fr.serkox.metarviewer.data.repository.NetworkMetarRepository
+import fr.serkox.metarviewer.data.repository.NetworkStationInfoRepository
+import fr.serkox.metarviewer.data.repository.StationInfoRepository
 import fr.serkox.metarviewer.data.repository.TafRepository
-import fr.serkox.metarviewer.network.AirportInfoApiService
+import fr.serkox.metarviewer.network.StationApiService
 import fr.serkox.metarviewer.network.MetarApiService
 import fr.serkox.metarviewer.network.TafApiService
 import retrofit2.Retrofit
-import retrofit2.converter.scalars.ScalarsConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 
 interface AppContainer {
     val metarRepository: MetarRepository
     val airportRepository: AirportRepository
     val tafRepository: TafRepository
-    val airportInfoRepository: AirportInfoRepository
+    val stationInfoRepository: StationInfoRepository
 }
 
 class DefaultAppContainer: AppContainer{
-    private val baseUrl = "https://beta.aviationweather.gov/cgi-bin/data/"
+    private val baseUrl = "https://api.checkwx.com/"
 
     private val retrofit: Retrofit = Retrofit.Builder()
-        .addConverterFactory(ScalarsConverterFactory.create())
+        .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
         .baseUrl(baseUrl)
         .build()
 
@@ -37,8 +38,8 @@ class DefaultAppContainer: AppContainer{
         retrofit.create(TafApiService::class.java)
     }
 
-    private val retrofitAirportInfoService: AirportInfoApiService by lazy {
-        retrofit.create(AirportInfoApiService::class.java)
+    private val retrofitStationInfoService: StationApiService by lazy {
+        retrofit.create(StationApiService::class.java)
     }
 
     override val airportRepository: AirportRepository by lazy {
@@ -53,8 +54,8 @@ class DefaultAppContainer: AppContainer{
         NetWorkTafRepository(retrofitTafService)
     }
 
-    override val airportInfoRepository: AirportInfoRepository by lazy {
-        NetworkAirportInfoRepository(retrofitAirportInfoService)
+    override val stationInfoRepository: StationInfoRepository by lazy {
+        NetworkStationInfoRepository(retrofitStationInfoService)
     }
 
 }
