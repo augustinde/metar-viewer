@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,10 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import fr.serkox.metarviewer.R
+import fr.serkox.metarviewer.data.model.dto.StationDto
 import fr.serkox.metarviewer.ui.reusable.LoadingAnimation
-import fr.serkox.metarviewer.ui.theme.AndroidProjectTheme
 import fr.serkox.metarviewer.ui.viewmodel.StationUiState
 
 @Composable
@@ -32,8 +34,7 @@ fun StationScreen(
         is StationUiState.Success -> StationInfo(
             metar = stationUiState.metar,
             taf = stationUiState.taf,
-            airportInfo = stationUiState.airportInfo,
-            airportCode = stationUiState.airportCode
+            stationInfo = stationUiState.stationInfo
         )
     }
 
@@ -43,42 +44,85 @@ fun StationScreen(
 fun StationInfo(
     metar: String,
     taf: String,
-    airportInfo: String,
-    airportCode: String
+    stationInfo: StationDto
 ){
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp, 0.dp, 20.dp, 20.dp)
+            .padding(20.dp, 20.dp, 20.dp, 20.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Text(modifier = Modifier.padding(0.dp, 10.dp), text = "INFO $airportCode")
-        StationInfoCard(value = airportInfo)
-        Text(text = "METAR")
-        StationInfoCard(value = metar)
-        Text(text = "TAF")
-        StationInfoCard(value = taf)
+        StationInfoCard(station = stationInfo)
+        WeatherInfoCard(value = metar, type = "METAR")
+        WeatherInfoCard(value = taf, type = "TAF")
     }
 }
 
 
 @Composable
-fun StationInfoCard(value: String) {
+fun StationInfoCard(station: StationDto) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(color = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+        if (station.icao.isEmpty()) {
+            Text(
+                modifier = Modifier.padding(12.dp),
+                text = stringResource(R.string.information_not_available),
+                color = Color.White
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(text = station.icao, style = MaterialTheme.typography.titleMedium)
+                Text(text = station.location, style = MaterialTheme.typography.bodyMedium)
+                Text(text = station.name, style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(R.string.station_status, station.status), style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(R.string.station_type, station.type), style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(
+                    R.string.meters_feet,
+                    station.elevation.meters,
+                    station.elevation.feet
+                ), style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(R.string.latitude, station.latitude.decimal), style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(R.string.longitude, station.longitude.decimal), style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
+
+@Composable
+fun WeatherInfoCard(
+    value: String,
+    type: String
+) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(color = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
         ) {
-        if (value.isNotEmpty()) {
-            Text(modifier = Modifier.padding(12.dp), text = value, color = Color.White)
-        } else {
-            Text(
-                modifier = Modifier.padding(12.dp),
-                text = "Cette information n'est pas disponible.",
-                color = Color.White
-            )
+            Text(text = type)
+
+            if (value.isNotEmpty()) {
+                Text(modifier = Modifier.padding(12.dp), text = value, color = Color.White)
+            } else {
+                Text(
+                    modifier = Modifier.padding(12.dp),
+                    text = stringResource(R.string.information_not_available),
+                    color = Color.White
+                )
+            }
         }
     }
 }
@@ -105,13 +149,6 @@ fun ErrorInfo(){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Erreur lors du chargement des informations !")
-    }
-}
-
-@Composable
-@Preview
-fun MetarScreenPreview(){
-    AndroidProjectTheme {
+        Text(text = stringResource(R.string.error_loading_information))
     }
 }

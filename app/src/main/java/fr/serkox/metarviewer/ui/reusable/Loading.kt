@@ -25,12 +25,10 @@ fun LoadingAnimation(
     animationDelay: Int = 1000
 ) {
 
-    // circle's scale state
     var circleScale by remember {
         mutableStateOf(0f)
     }
 
-    // animation
     val circleScaleAnimate = animateFloatAsState(
         targetValue = circleScale,
         animationSpec = infiniteRepeatable(
@@ -40,12 +38,10 @@ fun LoadingAnimation(
         ), label = ""
     )
 
-    // This is called when the app is launched
     LaunchedEffect(Unit) {
         circleScale = 1f
     }
 
-    // animating circle
     Box(
         modifier = Modifier
             .size(size = 64.dp)

@@ -1,10 +1,5 @@
 package fr.serkox.metarviewer.ui.screen
 
-import android.Manifest
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,16 +20,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapsComposeExperimentalApi
@@ -42,7 +33,6 @@ import com.google.maps.android.compose.clustering.Clustering
 import com.google.maps.android.compose.rememberCameraPositionState
 import fr.serkox.metarviewer.R
 import fr.serkox.metarviewer.data.model.AirfieldObject
-import fr.serkox.metarviewer.network.AddDataToFirestore
 import fr.serkox.metarviewer.ui.navigation.MetarViewerNavHost
 import fr.serkox.metarviewer.ui.navigation.MetarViewerNavigationScreen
 import fr.serkox.metarviewer.ui.reusable.LoadingAnimation
@@ -83,8 +73,6 @@ fun MetarViewerApp(){
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = MetarViewerNavigationScreen.valueOf(backStackEntry?.destination?.route ?: MetarViewerNavigationScreen.Start.name)
-    val service = AddDataToFirestore()
-    val context: Context = LocalContext.current
     Scaffold(
         topBar = {
             MetarViewerAppBar(
@@ -104,24 +92,19 @@ fun MetarViewerApp(){
                 .fillMaxSize()
                 .padding(innerPadding)
         )
-       //Button(onClick = { service.addDataFromJson(context = context) }, content = {Text(text = "Click")}, modifier = Modifier.padding(innerPadding))
     }
 }
 
-@RequiresPermission(
-    anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION],
-)@Composable
+@Composable
 fun MapScreen(
     mapUiState: MapUiState,
     onMarkerClicked: (String) -> Unit,
 ){
-
     when(mapUiState) {
         is MapUiState.Success -> Map(mapUiState.airfieldList, mapUiState.cameraPosition, onMarkerClicked)
         is MapUiState.Loading -> LoadingMap()
         is MapUiState.Error -> ErrorMap()
     }
-
 }
 
 @OptIn(MapsComposeExperimentalApi::class)
@@ -174,18 +157,6 @@ fun ErrorMap(){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Erreur lors du chargement du metar !")
-    }}
-
-private fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
-    val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
-    vectorDrawable!!.setBounds(0, 0, vectorDrawable.intrinsicWidth, vectorDrawable.intrinsicHeight)
-    val bitmap = Bitmap.createBitmap(
-        vectorDrawable.intrinsicWidth,
-        vectorDrawable.intrinsicHeight,
-        Bitmap.Config.ARGB_8888
-    )
-    val canvas = Canvas(bitmap)
-    vectorDrawable.draw(canvas)
-    return BitmapDescriptorFactory.fromBitmap(bitmap)
+        Text(text = stringResource(R.string.error_loading_information))
+    }
 }

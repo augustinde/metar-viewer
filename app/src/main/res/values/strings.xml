@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">METAR Viewer</string>
-    <string name="start">Metar station selection</string>
+    <string name="start">Station selection</string>
     <string name="metar">Metar viewer</string>
     <string name="back_button">Back</string>
+    <string name="information_not_available">This information is not available.</string>
+    <string name="station_status">Station status: %1$s</string>
+    <string name="station_type">Station type: %1$s</string>
+    <string name="latitude">Latitude: %1$s</string>
+    <string name="longitude">Longitude: %1$s</string>
+    <string name="meters_feet">%1$s meters/%2$s feet</string>
+    <string name="error_loading_information">Error loading information!</string>
 </resources>

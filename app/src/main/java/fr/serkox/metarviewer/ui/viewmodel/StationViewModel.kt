@@ -1,6 +1,5 @@
 package fr.serkox.metarviewer.ui.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,8 +10,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.serkox.metarviewer.MetarApplication
-import fr.serkox.metarviewer.data.repository.AirportInfoRepository
+import fr.serkox.metarviewer.data.model.dto.StationDto
 import fr.serkox.metarviewer.data.repository.MetarRepository
+import fr.serkox.metarviewer.data.repository.StationInfoRepository
 import fr.serkox.metarviewer.data.repository.TafRepository
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -21,21 +21,19 @@ import java.io.IOException
 class StationViewModel(
     private val metarRepository: MetarRepository,
     private val tafRepository: TafRepository,
-    private val airportInfoRepository: AirportInfoRepository,
+    private val stationInfoRepository: StationInfoRepository,
 ) : ViewModel() {
     var uiState: StationUiState by mutableStateOf(StationUiState.Loading)
         private set
 
-    fun getMetar(id: String) {
+    fun getMetar(icao: String) {
         viewModelScope.launch {
             uiState = StationUiState.Loading
             uiState = try {
-                StationUiState.Success(metarRepository.getMetar(id), tafRepository.getTaf(id), airportInfoRepository.getAirportInfo(id), id)
+                StationUiState.Success(metarRepository.getMetar(icao).metar, tafRepository.getTaf(icao).taf, stationInfoRepository.getStationInfo(icao))
             }catch (e: IOException){
-                Log.i("ERROR", e.toString())
                 StationUiState.Error
             }catch (e: HttpException){
-                Log.i("ERROR", e.toString())
                 StationUiState.Error
             }
         }
@@ -47,11 +45,11 @@ class StationViewModel(
                 val application = (this[APPLICATION_KEY] as MetarApplication)
                 val metarRepository = application.container.metarRepository
                 val tafRepository = application.container.tafRepository
-                val airportInfoRepository = application.container.airportInfoRepository
+                val stationInfoRepository = application.container.stationInfoRepository
                 StationViewModel(
                     metarRepository = metarRepository,
                     tafRepository = tafRepository,
-                    airportInfoRepository = airportInfoRepository
+                    stationInfoRepository = stationInfoRepository
                 )
             }
         }
@@ -59,7 +57,7 @@ class StationViewModel(
 }
 
 sealed interface StationUiState {
-    data class Success(val metar: String, val taf: String, val airportInfo: String, val airportCode: String) : StationUiState
+    data class Success(val metar: String, val taf: String, val stationInfo: StationDto) : StationUiState
     object Error : StationUiState
     object Loading : StationUiState
 }

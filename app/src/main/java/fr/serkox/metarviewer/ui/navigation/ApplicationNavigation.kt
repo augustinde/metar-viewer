@@ -1,7 +1,5 @@
 package fr.serkox.metarviewer.ui.navigation
 
-import android.annotation.SuppressLint
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,7 +18,6 @@ enum class MetarViewerNavigationScreen(@StringRes val title: Int){
     Metar(title = R.string.metar)
 }
 
-@SuppressLint("MissingPermission")
 @Composable
 fun MetarViewerNavHost(
     stationViewModel: StationViewModel,
@@ -39,7 +36,6 @@ fun MetarViewerNavHost(
             MapScreen(
                 mapUiState = mapViewModel.mapUiState,
                 onMarkerClicked = {
-                    Log.i("INFO", it)
                     stationViewModel.getMetar(it)
                     navController.navigate(MetarViewerNavigationScreen.Metar.name)
                 },

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">METAR Viewer</string>
+    <string name="start">Sélection de la station</string>
+    <string name="metar">Metar viewer</string>
+    <string name="back_button">Retour</string>
+    <string name="information_not_available">Cette information n\'est pas disponible.</string>
+    <string name="station_status">Status de la station: %1$s</string>
+    <string name="station_type">Type de la station %1$s</string>
+    <string name="latitude">Latitude: %1$s</string>
+    <string name="longitude">Longitude: %1$s</string>
+    <string name="meters_feet">%1$s mètres/%2$s pieds</string>
+    <string name="error_loading_information">Erreur lors du chargement des informations !</string>
+</resources>

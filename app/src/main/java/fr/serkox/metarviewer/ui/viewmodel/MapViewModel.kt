@@ -32,18 +32,14 @@ class MapViewModel(private val airportRepository: AirportRepository): ViewModel(
 
             val airports: List<AirfieldObject> = airportRepository.getAll();
 
-            Log.i("SIZE", airports.size.toString())
             mapUiState = try {
                 MapUiState.Success(
                     airports,
-                    CameraPosition.fromLatLngZoom(LatLng(49.9715003967, 2.69765996933), 8f)
+                    CameraPosition.fromLatLngZoom(LatLng(48.866667, 2.333333), 8f)
                 )
             }catch (e: Exception){
-                Log.e("ERROR", e.toString())
                 MapUiState.Error
             }
-            Log.i("tag", "zdzdpazdj")
-
         }
     }
 
