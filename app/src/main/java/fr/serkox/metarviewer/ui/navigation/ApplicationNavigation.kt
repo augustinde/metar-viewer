@@ -2,6 +2,8 @@ package fr.serkox.metarviewer.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -43,7 +45,8 @@ fun MetarViewerNavHost(
         }
         composable(route = MetarViewerNavigationScreen.Metar.name){
             StationScreen(
-                stationUiState = stationViewModel.uiState
+                stationUiState = stationViewModel.uiState,
+                stationViewModel = stationViewModel
             )
         }
 

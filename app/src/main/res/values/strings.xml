@@ -10,4 +10,5 @@
     <string name="longitude">Longitude: %1$s</string>
     <string name="meters_feet">%1$s meters/%2$s feet</string>
     <string name="error_loading_information">Error loading information!</string>
+    <string name="decode_metar">Decoding METAR</string>
 </resources>

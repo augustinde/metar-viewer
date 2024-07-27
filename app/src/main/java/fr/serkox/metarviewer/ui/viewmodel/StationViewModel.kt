@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.serkox.metarviewer.MetarApplication
+import fr.serkox.metarviewer.data.model.dto.MetarDecodedDto
 import fr.serkox.metarviewer.data.model.dto.StationDto
 import fr.serkox.metarviewer.data.repository.MetarRepository
 import fr.serkox.metarviewer.data.repository.StationInfoRepository
@@ -39,6 +40,10 @@ class StationViewModel(
         }
     }
 
+    suspend fun decodeMetar(icao: String): MetarDecodedDto {
+        return metarRepository.getMetarDecoded(icao)
+    }
+
     companion object{
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -57,7 +62,7 @@ class StationViewModel(
 }
 
 sealed interface StationUiState {
-    data class Success(val metar: String, val taf: String, val stationInfo: StationDto) : StationUiState
+    data class Success(val metar: String? = "", val taf: String? = "", val stationInfo: StationDto? = null, val decodedMetar: MetarDecodedDto? = null) : StationUiState
     object Error : StationUiState
     object Loading : StationUiState
 }
